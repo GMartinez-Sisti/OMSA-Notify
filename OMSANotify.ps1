@@ -109,7 +109,7 @@ Function sendMail($AlertType, $Body) {
 Function Setup() {
     # Define our command String
     $ScriptPath = (Get-Variable MyInvocation -Scope 1).Value.MyCommand.Definition
-    $command = "powershell "+$ScriptPath+" -EventType"
+    $command = "powershell -ExecutionPolicy RemoteSigned "+$ScriptPath+" -EventType"
 
     # Set Up OpenManage Alert handlers
     Foreach ($Alert in $Alerts.Keys) {
