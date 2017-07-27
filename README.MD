@@ -18,16 +18,22 @@ This script updates your Dell OMSA Alert Management settings to call this script
 * $EmailDomainSender  = "domain.local"            #The domain portion of your email address
 * $EmailTo            = "recipient@domain.local"  #Email to send to
 * $EmailReplyTo       = "no-reply@domain.local"   #Email to send as
-3. From an Admin PowerShell run the script with the setup switch .\OMSANotify.ps1 -Setup
+3. From an Admin PowerShell run the script with the setup switch .\OMSANotify.ps1 -Setup (see Note below)
 4. The script will update each alert type in OMSA to use the OMSANotify.ps1 script
 5. Check in OMSA to verify the changes were made successfully OMSA -> Alert Management -> All Alerts -> Execute Application = Enabled + Script
+
+NOTE - On Windows 2012, 2012 R2, or 2016 you may have to alter the ExecutionPolicy to get the scripts to run.
+Example - powershell.exe -ExecutionPolicy RemoteSigned .\OMSANotify.ps1 -Setup
 
 ## Tests
 
 Testing the script setup.
 
-1. From an Admin PowerShell run the script with the test switch .\OMSANotify.ps1 -Test
+1. From an Admin PowerShell run the script with the test switch .\OMSANotify.ps1 -Test (see Note below)
 2. This will send a test email to the $EmailTo in the script
+
+NOTE - On Windows 2012, 2012 R2, or 2016 you may have to alter the ExecutionPolicy to get the scripts to run.
+Example - powershell.exe -ExecutionPolicy RemoteSigned .\OMSANotify.ps1 -Test
 
 Testing OMSA integration.  You can alter a thermal probe to think it's outside of it's range to trigger and alert.
 
