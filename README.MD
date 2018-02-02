@@ -9,6 +9,8 @@ This script updates your Dell OMSA Alert Management settings to call this script
 "Forked" from https://github.com/ncouraud/OMSA-Notify
 "Re-Forked" https://github.com/GMartinez-Sisti/OMSA-Notify
 
+## Version
+1.0.0
 
 ## Installation
 
@@ -18,12 +20,15 @@ This script updates your Dell OMSA Alert Management settings to call this script
 * $EmailDomainSender  = "domain.local"            #The domain portion of your email address
 * $EmailTo            = "recipient@domain.local"  #Email to send to
 * $EmailReplyTo       = "no-reply@domain.local"   #Email to send as
+* $LogLocation        = "D:\Logs"                 #Location to store OMSANotify event and error logs
+* $EnableExecutionPolicy = $true                  #Enable usage of setting -ExecutionPolicy RemoteSigned
 3. From an Admin PowerShell run the script with the setup switch .\OMSANotify.ps1 -Setup (see Note below)
 4. The script will update each alert type in OMSA to use the OMSANotify.ps1 script
 5. Check in OMSA to verify the changes were made successfully OMSA -> Alert Management -> All Alerts -> Execute Application = Enabled + Script
 
 NOTE - On Windows 2012, 2012 R2, or 2016 you may have to alter the ExecutionPolicy to get the scripts to run.
-Example - powershell.exe -ExecutionPolicy RemoteSigned .\OMSANotify.ps1 -Setup
+
+* Example - powershell.exe -ExecutionPolicy RemoteSigned .\OMSANotify.ps1 -Setup
 
 ## Tests
 
@@ -46,8 +51,10 @@ Testing OMSA integration.  You can alter a thermal probe to think it's outside o
 
 ## Debugging
 
-If the script errors during the email sending action it will write the error to a local fil named OMSANotify-error.log to help in debugging.
+If the script errors during the email sending action it will write the error to a local file named OMSANotify-error.log to help in debugging.
 
 The Dell OMSA path must be in your system path or the calls to update OMSA will fail.
 
 The current version of OMSA-Notify does not work with SMTP credentials.
+
+Dell OMSA 9.1 when installed disables the Alert Actions for Storage devices so you must run OMSA-Notify again to re-enable them.
