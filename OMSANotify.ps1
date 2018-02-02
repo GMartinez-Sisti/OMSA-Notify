@@ -2,13 +2,16 @@
 .SYNOPSIS
 This is a PowerShell Script to generate email alerts from Dell OpenManage Server Administrator Alerts
 
+.VERSION
+1.0.0
+
 .DESCRIPTION
 This Script Is used to send SMTP alerts from Servers running Dell Open Manage Server Administrator. It can automatically configure itself for most common OpenManage Alerts using the -Setup Parameter. It can also send test alerts using -Test.
 
-.PARAMETER Setup
+.PARAMETER -Setup
 Runs omconfig commands to set the script as action on alert generation.
 
-.PARAMETER Test
+.PARAMETER -Test
 Sends a test alert.
 
 .PARAMETER EventType
@@ -40,8 +43,10 @@ Param(
 
 $EmailSmtpServer    = "smtp.domain.local"       #Your SMTP server
 $EmailDomainSender  = "domain.local"            #The domain portion of your email address
-$EmailTo            = "recipient@domain.local"  #Email to send to
-$EmailReplyTo       = "no-reply@domain.local"   #Email to send as
+$EmailTo            = "recipient@domain.local"  #Email to send TO
+$EmailReplyTo       = "no-reply@domain.local"   #Email to send FROM
+$LogLocation        = "D:\Logs"                 #Location to store OMSANotify event and error logs
+$EnableExecutionPolicy = $true                  #Enable usage of setting -ExecutionPolicy RemoteSigned
 
 # Todays date for logging
 $Date = Get-Date
@@ -71,6 +76,7 @@ $Alerts.Add("batterywarn",'Battery Warning')
 $Alerts.Add("batteryfail",'Battery Failure')
 $Alerts.Add("systempowerwarn",'System Power Warning')
 $Alerts.Add("systempowerfail",'System Power Failure')
+$Alerts.Add("systempeakpower",'System Peak Power')
 $Alerts.Add("storagesyswarn",'Storage System Warning')
 $Alerts.Add("storagesysfail",'Storage System Failure')
 $Alerts.Add("storagectrlwarn",'Storage Controller Warning')
@@ -109,7 +115,13 @@ Function sendMail($AlertType, $Body) {
 Function Setup() {
     # Define our command String
     $ScriptPath = (Get-Variable MyInvocation -Scope 1).Value.MyCommand.Definition
+    If($EnableExecutionPolicy = $true)
+    {
     $command = "powershell -ExecutionPolicy RemoteSigned "+$ScriptPath+" -EventType"
+    }
+    Else {
+        $command = "powershell "+$ScriptPath+" -EventType"
+    }
 
     # Set Up OpenManage Alert handlers
     Foreach ($Alert in $Alerts.Keys) {
@@ -140,8 +152,8 @@ Function logEvent($Event) {
     Write-EventLog -Logname System -Source OMSANotify -EventId 1 -EntryType Warning -Message $Event
     
     # Write event to local file log
-    $ScriptFolder = Split-Path $script:MyInvocation.MyCommand.Path
-    $Event | Out-File $ScriptFolder"\OMSANotify-event.log" -Append
+    $LogDate = (Get-Date).tostring("yyyyMMdd")
+    $Event | Out-File $LogLocation"\OMSANotify-event"-$LogDate".log" -Append
 }
 
 # Handles All Alert Processing.
@@ -159,14 +171,14 @@ Function ProcessAlert($Alert) {
     $AlertMessageString = "$AlertProcessed was reported at $Date on $($Env:COMPUTERNAME). Check OMSA for further details - https://$($Env:COMPUTERNAME):1311"
     
     Try {
-    sendMail $AlertProcessed $AlertMessageString
-    logEvent $AlertMessageString
+        logEvent $AlertMessageString
+        sendMail $AlertProcessed $AlertMessageString
     }
     Catch {
         # Write errors to log file
-        $ScriptFolder = Split-Path $script:MyInvocation.MyCommand.Path
-        write-output "$Date - OMSANotify Error" | Out-File $ScriptFolder"\OMSANotify-error.log" -Append
-        $_ | Format-List * -Force | Out-File $ScriptFolder"\OMSANotify-error.log" -Append
+        $LogDate = (Get-Date).tostring("yyyyMMdd")
+        write-output "$Date - OMSANotify Error" | Out-File $LogLocation"\OMSANotify-error"-$LogDate".log" -Append
+        $_ | Format-List * -Force | Out-File $LogLocation"\OMSANotify-error"-$LogDate".log" -Append
     }
 }
 
